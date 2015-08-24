@@ -1,0 +1,12 @@
+\tikzset{pics/.cd,
+  banner/.style args={#1}{code={
+    \draw[rounded corners=1cm] (0,0) rectangle (\bannerwidth,-\bannerheight);
+       \node [ draw
+         , rectangle split
+         , rectangle split parts = 2
+         , rectangle split part align = {center, center}
+         , font = \fontsize{250}{0}\selectfont
+         ] at (\bannerwidth/2,-\bannerheight/8)
+      {易\nodepart{two}經};
+  }}
+}

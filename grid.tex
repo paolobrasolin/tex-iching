@@ -1,0 +1,56 @@
+\tikzset{pics/.cd,
+  monogram/.style args={#1}{code={
+    \def\yin {-- (-1,0)  (1,0) --}
+    \def\yang{--}
+    \draw [line width=1cm, purple] (-6,0) \csname#1\endcsname (6,0);
+  }},
+  hexagram/.style args={#1 sized #2 by #3}{code={
+    \begin{scope}[yshift=-7cm,transform canvas={xscale=#2/12cm,yscale=#2/11cm}]
+    \foreach \d [count=\n] in {#1}{
+      \IfStrEq{\d}{0}
+        {\pic [yshift=\n*2cm] {monogram=yin};}
+        {\pic [yshift=\n*2cm] {monogram=yang};}
+      }
+    \end{scope}
+  }},
+  hexamino/.style args={#1}{code={
+    \draw[rounded corners=1cm] (0,0) rectangle (\gridwidth/8,-\gridheight/8);
+    %\draw (5,0) -- (5,10);
+    %\draw (5,5) -- (10,5);
+    %\draw[yshift=-2.5cm,thin] (5,5) -- (10,5);
+   \node [ draw
+         , rectangle split
+         , rectangle split parts = 2
+         , rectangle split part align = {center, center}
+         ] at (7.5,-2.5)
+      {\fontsize{10}{0}\selectfont\chNames{#1}%
+       \nodepart{two}\fontsize{100}{0}\selectfont\chIdeograms{#1}};
+%    \fill[red] (7.5,7.5) circle (5pt);
+%    \node [ draw, text width = 5cm, inner sep=0.5cm, font=\tiny 
+%          , rectangle split
+%          , rectangle split parts = 6
+%          %, rectangle split part align = {center, center}
+%          ] at (2.5,2.5)
+% {\chLine 1 of \x
+% \nodepart{two}\chLine 2 of \x
+% \nodepart{three}\chLine 3 of \x
+% \nodepart{four}\chLine 4 of \x
+% \nodepart{five}\chLine 5 of \x
+% \nodepart{six}\chLine 6 of \x
+% };
+    \fill[red] (7.5,7.5) circle (5pt);
+    \node [ draw, text width = 5cm, inner sep=0.5cm, font=\tiny 
+         , rectangle split
+         , rectangle split parts = 6
+         %, rectangle split part align = {center, center}
+         ] at (3.5,-6)
+         {\chLine 1 of #1
+\nodepart{two}\chLine 2 of #1
+\nodepart{three}\chLine 3 of #1
+\nodepart{four}\chLine 4 of #1
+\nodepart{five}\chLine 5 of #1
+\nodepart{six}\chLine 6 of #1
+};
+    \node [font=\bfseries\HUGE] at (2,-1) {#1};
+  }}  
+}
