@@ -10,11 +10,14 @@
 
 
 \usepackage{fontspec}
-%\setmainfont{HanWangYanKai}
+\setmainfont{TakaoMincho}
 \usepackage{xstring}
 
 \usepackage{tikz}
 
+\input{lines}
+\input{ideograms}
+\input{names}
 \pgfmathsetbasenumberlength{6}
 \newcommand\tobin[1]{\pgfmathbin{#1}\pgfmathresult}
 
@@ -34,6 +37,7 @@
 
 \def\tiny{\fontsize{5}{0}\selectfont}
 \def\HUGE{\fontsize{50}{0}\selectfont}
+%\def\normalsize{\fontsize{20}{0}\selectfont}
 
 \begin{document}\topskip=0pt\noindent
 \begin{tikzpicture}[remember picture, overlay]
@@ -57,34 +61,40 @@
     %\draw (5,0) -- (5,10);
     %\draw (5,5) -- (10,5);
     %\draw[yshift=-2.5cm,thin] (5,5) -- (10,5);
-%    \node [ draw
-%          , rectangle split
-%          , rectangle split parts = 2
-%          , rectangle split part align = {center, center}
-%          ] at (7.5,7.5)
-%      {\fontsize{10}{0}\selectfont The Nourishment%
-%       \nodepart{two}\fontsize{100}{0}\selectfont 頤};
+   \node [ draw
+         , rectangle split
+         , rectangle split parts = 2
+         , rectangle split part align = {center, center}
+         ] at (7.5,-2.5)
+      {\fontsize{10}{0}\selectfont\chNames{#1}%
+       \nodepart{two}\fontsize{100}{0}\selectfont\chIdeograms{#1}};
 %    \fill[red] (7.5,7.5) circle (5pt);
 %    \node [ draw, text width = 5cm, inner sep=0.5cm, font=\tiny 
 %          , rectangle split
 %          , rectangle split parts = 6
 %          %, rectangle split part align = {center, center}
 %          ] at (2.5,2.5)
-%{\chLine 1 of 1
-%\nodepart{two}\chLine 2 of 1
-%\nodepart{three}\chLine 3 of 1
-%\nodepart{four}\chLine 4 of 1
-%\nodepart{five}\chLine 5 of 1
-%\nodepart{six}\chLine 6 of 1
-%};
-    %\fill[red] (7.5,7.5) circle (5pt);
-    %\node [ draw, text width = 5cm, inner sep=0.5cm, font=\tiny 
-    %      , rectangle split
-    %      , rectangle split parts = 6
-    %      %, rectangle split part align = {center, center}
-    %      ] at (2.5,2.5)
-    %      {A\nodepart{two}B\nodepart{three}C\nodepart{four}D\nodepart{five}E\nodepart{six}F};
-    \node [font=\bfseries\HUGE] at (1,-1) {#1};
+% {\chLine 1 of \x
+% \nodepart{two}\chLine 2 of \x
+% \nodepart{three}\chLine 3 of \x
+% \nodepart{four}\chLine 4 of \x
+% \nodepart{five}\chLine 5 of \x
+% \nodepart{six}\chLine 6 of \x
+% };
+    \fill[red] (7.5,7.5) circle (5pt);
+    \node [ draw, text width = 5cm, inner sep=0.5cm, font=\tiny 
+         , rectangle split
+         , rectangle split parts = 6
+         %, rectangle split part align = {center, center}
+         ] at (3.5,-6)
+         {\chLine 1 of #1
+\nodepart{two}\chLine 2 of #1
+\nodepart{three}\chLine 3 of #1
+\nodepart{four}\chLine 4 of #1
+\nodepart{five}\chLine 5 of #1
+\nodepart{six}\chLine 6 of #1
+};
+    \node [font=\bfseries\HUGE] at (2,-1) {#1};
   }}  
 }
 
@@ -104,9 +114,6 @@
   \edef\myArr{\strtoarr{\pgfmathresult}}
   \pic at ({mod(\x,8)/8*\gridwidth},{-int(\x/8)/8*\gridheight}) {hexamino=\n};
 }
-
-
-
-
 \end{tikzpicture}
+
 \end{document}
