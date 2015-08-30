@@ -1,71 +1,148 @@
 \documentclass{minimal}
-\usepackage[a0paper,landscape,left=0mm,right=0mm,top=0mm,bottom=0mm]{geometry}
+\usepackage[a0paper,landscape,margin=0mm]{geometry}
+
+\usepackage{xcolor}
+\pagecolor{black}
 
 \usepackage{calc}
 
-\newlength\bannerheight \setlength\bannerheight{\paperheight}
-\newlength\bannerwidth  \setlength\bannerwidth{\paperwidth/9}
-\newlength\gridheight   \setlength\gridheight{\paperheight}
-\newlength\gridwidth    \setlength\gridwidth{\paperwidth-\bannerwidth}
-
-
-\usepackage{fontspec}
-\setmainfont{TakaoMincho}
 \usepackage{xstring}
 
 \usepackage{tikz}
-
-\input{lines}
-\input{ideograms}
-\input{names}
-\pgfmathsetbasenumberlength{6}
-\newcommand\tobin[1]{\pgfmathbin{#1}\pgfmathresult}
-
-\def\intersperse#1#2<#3>{%
-  \if\relax#1\relax\else#1\if\relax#2\relax\else#3\fi\fi%
-  \if\relax#2\relax\else\intersperse#2<#3>\fi}
-
-\newcommand\strtoarr[1]{\expandafter\intersperse#1<,>}
-
-
 \usetikzlibrary{calc}
 \usetikzlibrary{shapes.multipart}
-%\usetikzlibrary{positioning}
-%\usepackage{tikzpagenodes}
 
-%\include{lines}
+\usepackage{fontspec}
+\setmainfont{Linux Libertine O}
+\newfontface\kanjiFont{HanWang KaiBold-Gb5}
 
-\def\tiny{\fontsize{5}{0}\selectfont}
-\def\HUGE{\fontsize{50}{0}\selectfont}
-%\def\normalsize{\fontsize{20}{0}\selectfont}
+\newlength\pagepadding  \setlength\pagepadding{\paperheight/150} % */(64+1)/2
+\newlength\bannerheight \setlength\bannerheight{\paperheight-2\pagepadding}
+\newlength\bannerwidth  \setlength\bannerwidth{(\paperwidth-2\pagepadding)/9}
+\newlength\gridheight   \setlength\gridheight{\paperheight-2\pagepadding}
+\newlength\gridwidth    \setlength\gridwidth{\paperwidth-\bannerwidth-2\pagepadding}
+\newlength\cellheight   \setlength\cellheight{\gridheight/8}
+\newlength\cellwidth    \setlength\cellwidth{\gridwidth/8}
+\newlength\cellpadding  \setlength\cellpadding{\cellheight/16} % */8/2
+\newlength\cellcolumn   \setlength\cellcolumn{(\cellwidth-3\cellpadding)/2}
+\newlength\thickness    \setlength\thickness{\cellheight/8}
 
-\input{grid}
-\input{banner}
+\def\bigKanjiFont{\fontsize{100}{120}\kanjiFont}
+\def\smallKanjiFont{\fontsize{80}{96}\kanjiFont}
 
-\begin{document}\topskip=0pt\noindent
-\begin{tikzpicture}[remember picture, overlay]
+\def\judgmentFont{\fontsize{8.3pt}{10pt}\selectfont}
+\def\imageFont{\itshape\fontsize{8.3pt}{10pt}\selectfont}
+\def\commentFont{\fontsize{6.9pt}{8.3pt}\selectfont}
 
+\newcommand\formatIdeogram[1]{%
+  \StrChar{#1}{1}[\fst]%
+  \StrChar{#1}{2}[\snd]%
+  \IfStrEq{}{\snd}
+    {\bigKanjiFont\fst}
+    {\smallKanjiFont\fst\\\snd}}
 
-%\pic at (0,0) {hexagram = {0,0,1,0,0,1} sized 10cm by 10cm};
-%\draw (-5,-5) rectangle (5,5);
-\fill (0,0) circle (5pt);
-%\pic at (0,-10) {hexamino=a};
-\draw [purple]
-  (current page.south east) circle (20pt)
-  (current page.north east) circle (20pt)
-  (current page.north west) circle (20pt)
-  (current page.south west) circle (20pt);
+\usepackage{etoolbox}
 
-
-\foreach [count=\n] \x in {0,...,63}{
-  \pgfmathbin{\x}
-  \edef\myArr{\strtoarr{\pgfmathresult}}
-  \pic at ({mod(\x,8)/8*\gridwidth},{-int(\x/8)/8*\gridheight}) {hexamino=\n};
+\newcommand\formatComment[1]{%
+%  \expandafter\StrLen{\detokenize#1}
+%  \ifnumcomp{\len}{>}{20}
+%    {long}
+%    {short}%
 }
 
-\pic at (\gridwidth,0) {banner=no};
 
-%\draw[rounded corners=1cm] (0,0) rectangle (\gridwidth/8,-\gridheight/8);
-\end{tikzpicture}
 
+\input{iching}
+\def\cs#1{\csname#1\endcsname}
+
+\tikzset{ shorten <>/.style={ shorten >=#1, shorten <=#1 } }
+
+\tikzset{pics/.cd,
+  monogram/.style args={#1 over #2}{code={
+    \begin{scope}
+      [ black!80!white
+      , line width = \thickness
+      , line cap = round
+      , shorten <> = 3.14*\thickness/8 % area optical correction
+      , xscale = \cellcolumn/1cm
+      ]
+    \IfStrEq{#2}{:}
+      {\draw (0,0) -- (1/3,0); \draw (2/3,0) -- (1,0);} % : yin
+      {\draw (0,0)              --              (1,0);} % | yang
+    \end{scope}
+    \node [ text width = \cellcolumn
+          %, inner sep = 0.5cm 
+          , font = \commentFont
+          , align = center
+          , white
+          ] at (\cellcolumn/2,0) {#1};
+  }},
+  hexagram/.style args={#1}{code={
+    \foreach \n in {1,...,6}{
+      \pic [yshift=1.2*(\n-3.5)*\thickness]
+           {monogram = \cs{hexagram#1/line\n/comment} %
+                  over \cs{hexagram#1/line\n/side}};}
+  }},
+  hexamino/.style args={#1}{code={
+    \node [ %draw
+          , %black!95!white
+          , rectangle
+          , minimum width  = \cellwidth  - 2*\cellpadding
+          , minimum height = \cellheight - 2*\cellpadding
+          ] (bound) {#1};
+    \node [ %draw
+          , rectangle split
+          , rectangle split parts = 2
+          , anchor = north east
+          , text width = \cellcolumn
+          , align = center
+          ] at (bound.north east)
+          {\formatIdeogram{\cs{hexagram#1/ideogram}}%
+           \nodepart{two}\fontsize{10}{0}\selectfont%
+           \cs{hexagram#1/translitteration}};
+    \node [ %draw
+          , text width = \cellcolumn
+          , rectangle
+          , anchor = south east
+          , align = justify
+          , font = \judgmentFont
+          ] (judgment) at (bound.south east)
+          {\cs{hexagram#1/judgment}};
+    \node [ %draw
+          , text width = \cellcolumn
+          , rectangle
+          , anchor = south
+          , align = justify
+          , font = \imageFont
+          ] at (judgment.north)
+          {\cs{hexagram#1/image}};
+    \pic at (bound.west) {hexagram/.expand once=#1};
+  }},
+  banner/.style args={#1}{code={
+    \draw (0,0) rectangle (\bannerwidth,-\bannerheight);
+    %   \node [ %draw
+    %     , rectangle split
+    %     , rectangle split parts = 2
+    %     , rectangle split part align = {center, center}
+    %     , font = \fontsize{250}{0}\selectfont\kanjiFont
+    %     ] at (\bannerwidth/2,-\bannerheight/8)
+    %  {易\nodepart{two}經};
+  }}
+}
+
+\begin{document}\topskip=0pt\noindent%
+  \begin{tikzpicture}[remember picture, overlay, color=white]
+    \fill (0,0) circle (5pt);
+    \draw [purple]
+      (current page.south east) circle (20pt)
+      (current page.north east) circle (20pt)
+      (current page.north west) circle (20pt)
+      (current page.south west) circle (20pt);
+    \foreach [count=\n] \x in {0,...,63}{
+      \pic at ( { (mod(\x,8)+0.5)/8*\gridwidth+\pagepadding}
+              , {-(int(\x/8)+0.5)/8*\gridheight-\pagepadding}
+              ) {hexamino=\n};
+    }
+    \pic at ({\gridwidth+\pagepadding},{-\pagepadding}) {banner=no};
+  \end{tikzpicture}
 \end{document}
