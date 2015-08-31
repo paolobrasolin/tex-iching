@@ -32,7 +32,10 @@
 
 \def\judgmentFont{\fontsize{8.3pt}{10pt}\selectfont}
 \def\imageFont{\itshape\fontsize{8.3pt}{10pt}\selectfont}
-\def\commentFont{\fontsize{6.9pt}{8.3pt}\selectfont}
+\def\commentFont{\fontsize{6pt}{8.3pt}\selectfont}
+
+\def\bigCommentFont{\fontsize{6.9pt}{8.3pt}\selectfont}
+\def\smallCommentFont{\fontsize{5pt}{6pt}\selectfont}
 
 \newcommand\formatIdeogram[1]{%
   \StrChar{#1}{1}[\fst]%
@@ -41,14 +44,15 @@
     {\bigKanjiFont\fst}
     {\smallKanjiFont\fst\\\snd}}
 
-\usepackage{etoolbox}
+\newcommand\commentFontSelector[1]{%
+  \setbox0\hbox to \cellcolumn{\vbox{\bigCommentFont#1}}%
+  \ifdim\ht0>\thickness\smallCommentFont\else\bigCommentFont\fi}
 
-\newcommand\formatComment[1]{%
-%  \expandafter\StrLen{\detokenize#1}
-%  \ifnumcomp{\len}{>}{20}
-%    {long}
-%    {short}%
-}
+
+
+
+
+\usepackage{etoolbox}
 
 
 
@@ -72,7 +76,7 @@
     \end{scope}
     \node [ text width = \cellcolumn
           %, inner sep = 0.5cm 
-          , font = \commentFont
+          , font = \commentFontSelector{#1}
           , align = center
           , white
           ] at (\cellcolumn/2,0) {#1};
@@ -119,14 +123,14 @@
     \pic at (bound.west) {hexagram/.expand once=#1};
   }},
   banner/.style args={#1}{code={
-    \draw (0,0) rectangle (\bannerwidth,-\bannerheight);
-    %   \node [ %draw
-    %     , rectangle split
-    %     , rectangle split parts = 2
-    %     , rectangle split part align = {center, center}
-    %     , font = \fontsize{250}{0}\selectfont\kanjiFont
-    %     ] at (\bannerwidth/2,-\bannerheight/8)
-    %  {易\nodepart{two}經};
+    %\draw (0,0) rectangle (\bannerwidth,-\bannerheight);
+    \node [ %draw
+          , rectangle split
+          , rectangle split parts = 2
+          , rectangle split part align = {center, center}
+          , font = \fontsize{250}{0}\selectfont\kanjiFont
+          ] at (\bannerwidth/2,-\bannerheight/8)
+          {易\nodepart{two}經};
   }}
 }
 
