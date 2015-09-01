@@ -1,4 +1,5 @@
 \documentclass{minimal}
+
 \usepackage[a0paper,landscape,margin=0mm]{geometry}
 
 \usepackage{xcolor}
@@ -16,26 +17,44 @@
 \setmainfont{Linux Libertine O}
 \newfontface\kanjiFont{HanWang KaiBold-Gb5}
 
-\newlength\pagepadding  \setlength\pagepadding{\paperheight/150} % */(64+1)/2
-\newlength\bannerheight \setlength\bannerheight{\paperheight-2\pagepadding}
-\newlength\bannerwidth  \setlength\bannerwidth{(\paperwidth-2\pagepadding)/9}
-\newlength\gridheight   \setlength\gridheight{\paperheight-2\pagepadding}
-\newlength\gridwidth    \setlength\gridwidth{\paperwidth-\bannerwidth-2\pagepadding}
-\newlength\cellheight   \setlength\cellheight{\gridheight/8}
-\newlength\cellwidth    \setlength\cellwidth{\gridwidth/8}
-\newlength\cellpadding  \setlength\cellpadding{\cellheight/16} % */8/2
-\newlength\cellcolumn   \setlength\cellcolumn{(\cellwidth-3\cellpadding)/2}
-\newlength\thickness    \setlength\thickness{\cellheight/8}
+\input{iching}
+
+\def\cs#1{\csname#1\endcsname}
+
+\def\defLength#1#2{ % \defLength{name}{value}
+ \expandafter\newlength\csname#1\endcsname
+ \expandafter\setlength\csname#1\endcsname{#2}}
+
+\def\defCageSizes#1#2#3#4{ % \defCageSizes{baseName}{width}{height}{padding}
+  \defLength{#1W}{#2}                    % baseNameW  = width
+  \defLength{#1H}{#3}                    % baseNameH  = height
+  \defLength{#1P}{#4}                    % baseNameP  = padding
+  \defLength{#1Wp}{#2 - (#4) * \real{2}} % baseNameWp = padded width
+  \defLength{#1Hp}{#3 - (#4) * \real{2}} % baseNameHp = padded height
+}
+
+\defCageSizes{paper}{\paperwidth}{\paperheight}{\paperheight/150} % */(64+1)/2
+\defCageSizes{banner}{\paperWp/9}{\paperHp}{1cm} % random number
+\defCageSizes{hexaGrid}{\paperWp-\bannerW}{\paperHp}{0cm}
+\defCageSizes{hexaCell}{\hexaGridWp/8}{\hexaGridHp/8}{\hexaCellH/16} % */8/2
+\defCageSizes{triaGrid}{\bannerWp}{\bannerHp/2}{0cm}
+\defCageSizes{triaCell}{\triaGridWp}{\triaGridHp/8}{\triaCellH/8}
+
+\newlength\cellcolumn   \setlength\cellcolumn{(\hexaCellW-3\hexaCellP)/2}
+\newlength\thickness    \setlength\thickness{\hexaCellH/8}
+
+\defLength{triaT}{\thickness/3}
+\defLength{triaC}{\triaT * \ratio{\cellcolumn}{\thickness}}
+
 
 \def\bigKanjiFont{\fontsize{100}{120}\kanjiFont}
 \def\smallKanjiFont{\fontsize{80}{96}\kanjiFont}
-
 \def\judgmentFont{\fontsize{8.3pt}{10pt}\selectfont}
 \def\imageFont{\itshape\fontsize{8.3pt}{10pt}\selectfont}
 \def\commentFont{\fontsize{6pt}{8.3pt}\selectfont}
-
 \def\bigCommentFont{\fontsize{6.9pt}{8.3pt}\selectfont}
 \def\smallCommentFont{\fontsize{5pt}{6pt}\selectfont}
+
 
 \newcommand\formatIdeogram[1]{%
   \StrChar{#1}{1}[\fst]%
@@ -49,19 +68,18 @@
   \ifdim\ht0>\thickness\smallCommentFont\else\bigCommentFont\fi}
 
 
+\def\cage#1[#2][#3] (#4) at (#5);{
+  \node [ cage={#1W}{#1H},   #2 ] (#4 outer cage) at (#5) {};
+  \node [ cage={#1Wp}{#1Hp}, #3 ] (#4 inner cage) at (#4 outer cage.center) {};
+}
 
 
-
-\usepackage{etoolbox}
-
-
-
-\input{iching}
-\def\cs#1{\csname#1\endcsname}
-
-\tikzset{ shorten <>/.style={ shorten >=#1, shorten <=#1 } }
-
-\tikzset{pics/.cd,
+\tikzset{
+  shorten <>/.style={ shorten >=#1, shorten <=#1 },
+  cage/.style 2 args={ draw, white, ultra thin
+                     , minimum width  = \cs{#1}
+                     , minimum height = \cs{#2} },
+  pics/.cd,
   monogram/.style args={#1 over #2}{code={
     \begin{scope}
       [ black!80!white
@@ -82,71 +100,92 @@
           ] at (\cellcolumn/2,0) {#1};
   }},
   hexagram/.style args={#1}{code={
-    \foreach \n in {1,...,6}{
+    \foreach \n in {1,...,6}
       \pic [yshift=1.2*(\n-3.5)*\thickness]
            {monogram = \cs{hexagram#1/line\n/comment} %
-                  over \cs{hexagram#1/line\n/side}};}
+                  over \cs{hexagram#1/line\n/side}};
   }},
   hexamino/.style args={#1}{code={
-    \node [ %draw
-          , %black!95!white
-          , rectangle
-          , minimum width  = \cellwidth  - 2*\cellpadding
-          , minimum height = \cellheight - 2*\cellpadding
-          ] (bound) {#1};
-    \node [ %draw
-          , rectangle split
-          , rectangle split parts = 2
-          , anchor = north east
-          , text width = \cellcolumn
-          , align = center
-          ] at (bound.north east)
-          {\formatIdeogram{\cs{hexagram#1/ideogram}}%
-           \nodepart{two}\fontsize{10}{0}\selectfont%
-           \cs{hexagram#1/translitteration}};
-    \node [ %draw
-          , text width = \cellcolumn
-          , rectangle
-          , anchor = south east
-          , align = justify
-          , font = \judgmentFont
-          ] (judgment) at (bound.south east)
-          {\cs{hexagram#1/judgment}};
-    \node [ %draw
-          , text width = \cellcolumn
-          , rectangle
-          , anchor = south
-          , align = justify
-          , font = \imageFont
-          ] at (judgment.north)
-          {\cs{hexagram#1/image}};
-    \pic at (bound.west) {hexagram/.expand once=#1};
+    \cage{hexaCell}[anchor=north west][] (cell#1) at (0,0);
+    \begin{scope}[rectangle, text width = \cellcolumn]
+      \node [ align = center, anchor = north east ]
+            (ideogram) at (cell#1 inner cage.north east)
+            {\formatIdeogram{\cs{hexagram#1/ideogram}}};
+      \node [ align = center, anchor = north ]
+            (translitteration) at (ideogram.south)
+            {\cs{hexagram#1/translitteration}};
+      \node [ align = justify, anchor = south east, font = \judgmentFont ]
+            (judgment) at (cell#1 inner cage.south east)
+            {\cs{hexagram#1/judgment}};
+      \node [ align = justify, anchor = south, font = \imageFont ]
+            (image) at (judgment.north)
+            {\cs{hexagram#1/image}};
+    \end{scope}
+    \pic at (cell#1 inner cage.west) {hexagram/.expand once=#1};
   }},
-  banner/.style args={#1}{code={
-    %\draw (0,0) rectangle (\bannerwidth,-\bannerheight);
-    \node [ %draw
-          , rectangle split
-          , rectangle split parts = 2
-          , rectangle split part align = {center, center}
+  smallmonogram/.style args={#1}{code={
+    \begin{scope}
+      [ black!80!white
+      , line width = \triaT
+      , line cap = round
+      , shorten <> = 3.14*\triaT/8 % area optical correction
+      , xscale = \triaC/1cm
+      ]
+    \IfStrEq{#1}{:}
+      {\draw (0,0) -- (1/3,0); \draw (2/3,0) -- (1,0);} % : yin
+      {\draw (0,0)              --              (1,0);} % | yang
+    \end{scope}
+  }},
+  triagram/.style args={#1}{code={
+    \foreach \n in {1,...,3}
+      \pic [yshift=1.2*(\n-2)*\triaT]
+           {smallmonogram = \cs{triagram#1/line\n/side}};
+  }},
+  triamino/.style args={#1}{code={
+    \cage{triaCell}[][] (item#1) at (0,0);
+    \pic at (item#1 inner cage.west) {triagram/.expand once=#1};
+    \node [ font=\kanjiFont\fontsize{60}{96}\selectfont
+          ,% anchor=north 
+          ] (ideogram) at (item#1 inner cage.center) {\cs{triagram#1/ideogram}};
+    \node [anchor=north] (traslitteration) at (ideogram.south) {\cs{triagram#1/translitteration}};
+  }},
+  triatable/.style={code={
+    \foreach [count=\n] \x in {0,...,7}
+      \pic at ( {0}, {(4-\x)*\triaCellH} ) {triamino=\n};
+  }},
+  banner/.style={code={
+    \cage{banner}[anchor=east][] (banner) at (0,0);
+    \node [% draw
+          , anchor = north
+          , rectangle
+          , align = center
           , font = \fontsize{250}{0}\selectfont\kanjiFont
-          ] at (\bannerwidth/2,-\bannerheight/8)
-          {易\nodepart{two}經};
-  }}
+          ] () at (banner inner cage.north)
+          {易\\經};
+    \node [% draw
+          , anchor = south
+          , text width = \bannerW-2*\bannerP
+          ] at (banner inner cage.south)
+          {German translation by Richard Wilhelm,
+           rendered into English by Cary Fink Baynes.
+           Typefaces: Linux Libertine, HanWang KaiBold Gb5.
+           Poster designed by Paolo al-Imk\=an\=\i\ Brasolin};
+    \pic at (banner inner cage.center) {triatable};
+  }},
+  hexatable/.style={code={
+    \foreach [count=\n] \x in {0,...,63}
+      \pic at ( {(  mod(\x,8))*\hexaCellW}
+              , {(4-int(\x/8))*\hexaCellH}
+              ) {hexamino=\n};
+  }},
 }
 
-\begin{document}\topskip=0pt\noindent%
+
+\begin{document}
   \begin{tikzpicture}[remember picture, overlay, color=white]
-    \fill (0,0) circle (5pt);
-    \draw [purple]
-      (current page.south east) circle (20pt)
-      (current page.north east) circle (20pt)
-      (current page.north west) circle (20pt)
-      (current page.south west) circle (20pt);
-    \foreach [count=\n] \x in {0,...,63}{
-      \pic at ( { (mod(\x,8)+0.5)/8*\gridwidth+\pagepadding}
-              , {-(int(\x/8)+0.5)/8*\gridheight-\pagepadding}
-              ) {hexamino=\n};
-    }
-    \pic at ({\gridwidth+\pagepadding},{-\pagepadding}) {banner=no};
+    \cage{paper}[][] (page) at (current page.center);
+    \pic at (page inner cage.west) {hexatable};
+    \pic at (page inner cage.east) {banner};
   \end{tikzpicture}
 \end{document}
+
