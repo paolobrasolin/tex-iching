@@ -76,7 +76,7 @@
 
 \tikzset{
   shorten <>/.style={ shorten >=#1, shorten <=#1 },
-  cage/.style 2 args={ draw, white, ultra thin
+  cage/.style 2 args={% draw, white, ultra thin
                      , minimum width  = \cs{#1}
                      , minimum height = \cs{#2} },
   pics/.cd,
@@ -143,11 +143,23 @@
   }},
   triamino/.style args={#1}{code={
     \cage{triaCell}[][] (item#1) at (0,0);
-    \pic at (item#1 inner cage.west) {triagram/.expand once=#1};
-    \node [ font=\kanjiFont\fontsize{60}{96}\selectfont
-          ,% anchor=north 
+    \pic at ($(item#1 inner cage.west)!.15!(item#1 inner cage.center)$) {triagram/.expand once=#1};
+    \node [ font=\kanjiFont\fontsize{80}{128}\selectfont
+          , anchor=center
           ] (ideogram) at (item#1 inner cage.center) {\cs{triagram#1/ideogram}};
     \node [anchor=north] (traslitteration) at (ideogram.south) {\cs{triagram#1/translitteration}};
+    \node [ anchor=west,
+            font=\judgmentFont\scshape
+          ] (translitteration) at ($(ideogram.east)+(20pt,0)$)
+          {\cs{triagram#1/translation}};
+    \node [ anchor=north west,
+            font=\judgmentFont
+          ] (family) at (translitteration.south west)
+          {\cs{triagram#1/family}};
+    \node [ anchor=south west,
+            font=\imageFont
+          ] (image) at (translitteration.north west)
+          {\cs{triagram#1/image}};
   }},
   triatable/.style={code={
     \foreach [count=\n] \x in {0,...,7}
@@ -162,14 +174,18 @@
           , font = \fontsize{250}{0}\selectfont\kanjiFont
           ] () at (banner inner cage.north)
           {易\\經};
-    \node [% draw
-          , anchor = south
+    \node [ anchor = south west
+          , xshift = 15pt
+          ] (glyph) at (banner inner cage.south west)
+          {\includegraphics{glyph}};
+    \node [ anchor = west
           , text width = \bannerW-2*\bannerP
-          ] at (banner inner cage.south)
-          {German translation by Richard Wilhelm,
-           rendered into English by Cary Fink Baynes.
-           Typefaces: Linux Libertine, HanWang KaiBold Gb5.
-           Poster designed by Paolo al-Imk\=an\=\i\ Brasolin};
+          ] at (banner inner cage.south west |- glyph.east)
+          {\raggedleft
+           German translation by Richard Wilhelm,\\
+           rendered into English by Cary Fink Baynes.\\[.5em]
+           Typeset by Paolo al-Imk\=an\=\i\ Brasolin.\\
+           Typefaces: Linux Libertine, HanWang KaiBold Gb5.\\};
     \pic at (banner inner cage.center) {triatable};
   }},
   hexatable/.style={code={
