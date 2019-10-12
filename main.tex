@@ -1,9 +1,24 @@
 \documentclass{minimal}
 
-\usepackage[a0paper,landscape,margin=0mm]{geometry}
+\usepackage[
+  % A0 + 1mm bleed
+  paperwidth = 1191mm,
+  paperheight = 843mm,
+  % A0
+  layoutwidth = 1189mm,
+  layoutheight = 841mm,
+  % 3mm safety check
+  %% margin = 3mm,
+  %% showframe,
+  %% showcrop
+]{geometry}
 
 \usepackage{xcolor}
-\pagecolor{black}
+%% \pagecolor{black}
+
+\colorlet{IdeogramInk}{black}
+\colorlet{TextInk}{black}
+\colorlet{NgramInk}{black!99!white} % no idea why this hack is necessary
 
 \usepackage{calc}
 
@@ -82,7 +97,7 @@
   pics/.cd,
   monogram/.style args={#1 over #2}{code={
     \begin{scope}
-      [ black!80!white
+      [ NgramInk, opacity=0.15,
       , line width = \thickness
       , line cap = round
       , shorten <> = 3.14*\thickness/8 % area optical correction
@@ -96,7 +111,7 @@
           %, inner sep = 0.5cm 
           , font = \commentFontSelector{#1}
           , align = center
-          , white
+          , TextInk
           ] at (\cellcolumn/2,0) {#1};
   }},
   hexagram/.style args={#1}{code={
@@ -108,16 +123,16 @@
   hexamino/.style args={#1}{code={
     \cage{hexaCell}[anchor=north west][] (cell#1) at (0,0);
     \begin{scope}[rectangle, text width = \cellcolumn]
-      \node [ align = center, anchor = north east ]
+      \node [ align = center, anchor = north east, IdeogramInk ]
             (ideogram) at (cell#1 inner cage.north east)
             {\formatIdeogram{\cs{hexagram#1/ideogram}}};
-      \node [ align = center, anchor = north ]
+      \node [ align = center, anchor = north, TextInk ]
             (translitteration) at (ideogram.south)
             {\cs{hexagram#1/translitteration}};
-      \node [ align = justify, anchor = south east, font = \judgmentFont ]
+      \node [ align = justify, anchor = south east, font = \judgmentFont, TextInk ]
             (judgment) at (cell#1 inner cage.south east)
             {\cs{hexagram#1/judgment}};
-      \node [ align = justify, anchor = south, font = \imageFont ]
+      \node [ align = justify, anchor = south, font = \imageFont, TextInk ]
             (image) at (judgment.north)
             {\cs{hexagram#1/image}};
     \end{scope}
@@ -125,7 +140,7 @@
   }},
   smallmonogram/.style args={#1}{code={
     \begin{scope}
-      [ black!80!white
+      [ NgramInk, opacity=0.15,
       , line width = \triaT
       , line cap = round
       , shorten <> = 3.14*\triaT/8 % area optical correction
@@ -146,18 +161,22 @@
     \pic at ($(item#1 inner cage.west)!.15!(item#1 inner cage.center)$) {triagram/.expand once=#1};
     \node [ font=\kanjiFont\fontsize{80}{128}\selectfont
           , anchor=center
+          , IdeogramInk
           ] (ideogram) at (item#1 inner cage.center) {\cs{triagram#1/ideogram}};
-    \node [anchor=north] (traslitteration) at (ideogram.south) {\cs{triagram#1/translitteration}};
+    \node [anchor=north, TextInk] (traslitteration) at (ideogram.south) {\cs{triagram#1/translitteration}};
     \node [ anchor=west,
-            font=\judgmentFont\scshape
+            font=\judgmentFont\scshape,
+            TextInk
           ] (translitteration) at ($(ideogram.east)+(20pt,0)$)
           {\cs{triagram#1/translation}};
     \node [ anchor=north west,
-            font=\judgmentFont
+            font=\judgmentFont,
+            TextInk
           ] (family) at (translitteration.south west)
           {\cs{triagram#1/family}};
     \node [ anchor=south west,
-            font=\imageFont
+            font=\imageFont,
+            TextInk
           ] (image) at (translitteration.north west)
           {\cs{triagram#1/image}};
   }},
@@ -167,7 +186,7 @@
   }},
   banner/.style={code={
     \cage{banner}[anchor=east][] (banner) at (0,0);
-    \node [% draw
+    \node [ IdeogramInk
           , anchor = north
           , rectangle
           , align = center
@@ -178,12 +197,13 @@
           , xshift = 15pt
           ] (glyph) at (banner inner cage.south west)
           {\includegraphics{glyph}};
-    \node [ anchor = west
+    \node [ anchor = west, TextInk
           , text width = \bannerW-2*\bannerP
           ] at (banner inner cage.south west |- glyph.east)
           {\raggedleft
            German translation by Richard Wilhelm,\\
            rendered into English by Cary Fink Baynes.\\[.5em]
+           Photo by \emph{Wands} Nakagawa.\\
            Typeset by Paolo al-Imk\=an\=\i\ Brasolin.\\
            Typefaces: Linux Libertine, HanWang KaiBold Gb5.\\};
     \pic at (banner inner cage.center) {triatable};
@@ -199,6 +219,8 @@
 
 \begin{document}
   \begin{tikzpicture}[remember picture, overlay, color=white]
+    \node [inner sep=0] at (current page.center) {\includegraphics[height=\paperheight]{gingko.jpg}};
+    \fill [white, opacity=0.6] (current page.north west) rectangle (current page.south east);
     \cage{paper}[][] (page) at (current page.center);
     \pic at (page inner cage.west) {hexatable};
     \pic at (page inner cage.east) {banner};
